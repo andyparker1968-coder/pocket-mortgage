@@ -100,6 +100,7 @@
     .legend-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--primary); }
     .legend-dot.grey { background: #9aa6a1; }
     .legend-dot.amber { background: var(--amber); }
+    .legend-line { width: 15px; height: 0; border-top: 2px dashed var(--amber); }
     .chart { width: 100%; min-height: 275px; overflow: hidden; }
     .chart svg { display: block; width: 100%; height: auto; min-height: 275px; overflow: visible; }
     .empty-chart { display: grid; place-items: center; min-height: 250px; color: var(--muted); text-align: center; font-size: 13px; border: 1px dashed var(--line); border-radius: 15px; }
@@ -109,6 +110,8 @@
     .impact-label { display: block; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .13em; font-weight: 800; }
     .impact-value { display: block; margin-top: 8px; font-family: Georgia, serif; font-size: 27px; letter-spacing: -.04em; }
     .impact-sub { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .fixed-card { border-color: rgba(197, 138, 39, .3); }
+    .fixed-card.hidden { display: none; }
     .details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 17px; overflow: hidden; }
     .detail { background: var(--card); padding: 16px; }
     .detail span { display: block; color: var(--muted); font-size: 10px; }
@@ -239,6 +242,7 @@
             <div class="legend">
               <span class="legend-item"><i class="legend-dot grey"></i>Without overpayments</span>
               <span class="legend-item"><i class="legend-dot"></i>With overpayments</span>
+              <span class="legend-item"><i class="legend-line"></i>Fixed ends</span>
             </div>
           </div>
           <div class="chart" id="balanceChart"></div>
@@ -250,9 +254,23 @@
             <div class="legend">
               <span class="legend-item"><i class="legend-dot grey"></i>Without overpayments</span>
               <span class="legend-item"><i class="legend-dot amber"></i>With overpayments</span>
+              <span class="legend-item"><i class="legend-line"></i>Fixed ends</span>
             </div>
           </div>
           <div class="chart" id="interestChart"></div>
+        </section>
+
+        <section class="card fixed-card hidden" id="fixedTermSection">
+          <div class="card-head">
+            <div><h2>At the end of the fixed deal</h2><p id="fixedTermCopy">What the projection looks like when the fixed period finishes.</p></div>
+          </div>
+          <div class="details">
+            <div class="detail"><span>Fixed term ends</span><strong id="fixedTermEnd">—</strong></div>
+            <div class="detail"><span>Balance without overpayments</span><strong id="fixedBalanceBase">—</strong></div>
+            <div class="detail"><span>Balance with overpayments</span><strong id="fixedBalanceOver">—</strong></div>
+            <div class="detail"><span>Balance reduced by</span><strong id="fixedBalanceSaved">—</strong></div>
+            <div class="detail"><span>Interest saved by then</span><strong id="fixedInterestSaved">—</strong></div>
+          </div>
         </section>
 
         <section class="card">
@@ -361,7 +379,7 @@
       }
       function setInputs(state) { ids.forEach(function (id) { if ($(id)) $(id).value = state[id]; }); }
       function escapeXml(value) { return String(value).replace(/[<>&'"]/g, function (char) { return ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", "\"": "&quot;" })[char]; }); }
-      function chartSvg(series, yFormatter) {
+      function chartSvg(series, yFormatter, marker) {
         if (!series || !series.length || !series[0].values.length) return '<div class="empty-chart">Enter your mortgage details to see the projection.</div>';
         var width = 760, height = 280, left = 58, right = 18, top = 18, bottom = 37, plotW = width - left - right, plotH = height - top - bottom;
         var all = []; series.forEach(function (s) { all = all.concat(s.values); });
@@ -379,6 +397,11 @@
         series[0].labels.forEach(function (label, index) {
           if (count <= 8 || index === 0 || index === count - 1 || index % Math.ceil(count / 6) === 0) xLabels += '<text x="' + x(index) + '" y="' + (height - 10) + '" text-anchor="middle" fill="' + colors.text + '" font-size="10" font-family="ui-monospace,monospace">' + escapeXml(label) + '</text>';
         });
+        var markerMarkup = "";
+        if (marker && count > 0 && marker.index >= 0 && marker.index <= count - 1) {
+          var markerX = x(marker.index);
+          markerMarkup = '<line x1="' + markerX + '" y1="' + top + '" x2="' + markerX + '" y2="' + (top + plotH) + '" stroke="' + colors.amber + '" stroke-width="1.5" stroke-dasharray="5 4"/><rect x="' + Math.min(markerX + 5, left + plotW - 72) + '" y="' + (top + 2) + '" width="67" height="17" rx="4" fill="#fffdf9" opacity=".94"/><text x="' + Math.min(markerX + 9, left + plotW - 68) + '" y="' + (top + 14) + '" fill="' + colors.amber + '" font-size="9" font-weight="700" font-family="ui-monospace,monospace">Fixed ends</text>';
+        }
         var paths = "";
         series.slice().reverse().forEach(function (item) {
           var points = item.values.map(function (value, index) { return x(index) + "," + y(value); }).join(" ");
@@ -390,7 +413,7 @@
             }
           });
         });
-        return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Mortgage projection chart">' + grid + labels + '<line x1="' + left + '" y1="' + (top + plotH) + '" x2="' + (left + plotW) + '" y2="' + (top + plotH) + '" stroke="' + colors.grid + '"/>' + paths + xLabels + '</svg>';
+        return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Mortgage projection chart">' + grid + markerMarkup + labels + '<line x1="' + left + '" y1="' + (top + plotH) + '" x2="' + (left + plotW) + '" y2="' + (top + plotH) + '" stroke="' + colors.grid + '"/>' + paths + xLabels + '</svg>';
       }
       function yearlyValues(sim, key, labels) {
         var rows = sim.yearly, values = [], names = [];
@@ -405,6 +428,9 @@
         var baseline = simulate(params, null);
         var endDate = state.fixedYears > 0 ? isoDate(addMonths(utcDate(state.startDate), Math.round(state.fixedYears * 12))) : null;
         var over = state.overpayment > 0 ? simulate(params, { amount: state.overpayment, startDate: state.overpaymentStart, endDate: endDate }) : null;
+        var fixedBaseline = endDate ? baseline.rows.filter(function (row) { return row.date <= endDate; }).slice(-1)[0] : null;
+        var fixedOver = endDate && over ? over.rows.filter(function (row) { return row.date <= endDate; }).slice(-1)[0] : null;
+        var fixedMarkerIndex = endDate && baseline.yearly.length ? Math.min(Math.max(0, Math.round(state.fixedYears)), baseline.yearly.length - 1) : null;
         var currency = "£";
         $("loanValue").textContent = money(loan, currency);
         $("monthlyPayment").textContent = money(baseline.payment, currency);
@@ -420,6 +446,15 @@
         $("detailScheduled").textContent = monthYear(baseline.scheduledDate);
         $("detailOverpay").textContent = over ? monthYear(over.payoffDate) : "—";
         $("detailFixed").textContent = state.fixedYears > 0 ? monthYear(endDate) : "Full term";
+        $("fixedTermSection").classList.toggle("hidden", !endDate);
+        if (endDate) {
+          $("fixedTermEnd").textContent = monthYear(endDate);
+          $("fixedTermCopy").textContent = over ? "The projected position when your fixed period finishes, including the regular overpayment test." : "The projected position when your fixed period finishes.";
+          $("fixedBalanceBase").textContent = money(fixedBaseline ? fixedBaseline.balance : loan, currency);
+          $("fixedBalanceOver").textContent = over ? money(fixedOver ? fixedOver.balance : 0, currency) : "Add overpayment";
+          $("fixedBalanceSaved").textContent = over ? money(Math.max(0, (fixedBaseline ? fixedBaseline.balance : loan) - (fixedOver ? fixedOver.balance : 0)), currency) : "—";
+          $("fixedInterestSaved").textContent = over ? money(Math.max(0, (fixedBaseline ? fixedBaseline.cumulativeInterest : 0) - (fixedOver ? fixedOver.cumulativeInterest : 0)), currency) : "—";
+        }
         $("heroStatus").textContent = over ? money(baseline.totalInterest - over.totalInterest, currency) + " potential saving" : "Ready to explore";
         $("interestSaved").textContent = over ? money(baseline.totalInterest - over.totalInterest, currency) : money(0, currency);
         $("monthsSaved").textContent = over ? formatMonths(Math.max(0, baseline.months - over.months)) : "—";
@@ -434,13 +469,14 @@
           var overRows = baseline.yearly.map(function (row, index) { return over.yearly[index] ? over.yearly[index].balance : 0; });
           balanceSeries.push({ name: "With overpayments", values: overRows, labels: labels, color: colors.green });
         }
-        $("balanceChart").innerHTML = chartSvg(balanceSeries, function (value) { return money(value, currency).replace(/,000$/, "k").replace(/£(\d+),(\d+)00$/, "£$1k"); });
+        var fixedMarker = fixedMarkerIndex === null ? null : { index: fixedMarkerIndex };
+        $("balanceChart").innerHTML = chartSvg(balanceSeries, function (value) { return money(value, currency).replace(/,000$/, "k").replace(/£(\d+),(\d+)00$/, "£$1k"); }, fixedMarker);
         var interestLabels = [], interestSeries = [{ name: "Without overpayments", values: yearlyValues(baseline, "cumulativeInterest", interestLabels), labels: interestLabels, color: colors.grey }];
         if (over) {
           var overInterest = baseline.yearly.map(function (row, index) { return over.yearly[index] ? over.yearly[index].cumulativeInterest : over.totalInterest; });
           interestSeries.push({ name: "With overpayments", values: overInterest, labels: interestLabels, color: colors.amber });
         }
-        $("interestChart").innerHTML = chartSvg(interestSeries, function (value) { return money(value, currency).replace(/,000$/, "k").replace(/£(\d+),(\d+)00$/, "£$1k"); });
+        $("interestChart").innerHTML = chartSvg(interestSeries, function (value) { return money(value, currency).replace(/,000$/, "k").replace(/£(\d+),(\d+)00$/, "£$1k"); }, fixedMarker);
       }
       function update() { var state = stateFromInputs(); saveState(state); render(state); }
       setInputs(readState());
