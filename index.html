@@ -367,8 +367,8 @@
         var yearly = [];
         rows.forEach(function (row) {
           var year = row.date.slice(0, 4), existing = yearly[yearly.length - 1];
-          if (!existing || existing.year !== year) { existing = { year: Number(year), balance: row.balance, cumulativeInterest: row.cumulativeInterest, cumulativePrincipal: row.principal }; yearly.push(existing); }
-          else { existing.balance = row.balance; existing.cumulativeInterest = row.cumulativeInterest; existing.cumulativePrincipal = row.principal; }
+          if (!existing || existing.year !== year) { existing = { year: Number(year), date: row.date, balance: row.balance, cumulativeInterest: row.cumulativeInterest, cumulativePrincipal: row.principal }; yearly.push(existing); }
+          else { existing.date = row.date; existing.balance = row.balance; existing.cumulativeInterest = row.cumulativeInterest; existing.cumulativePrincipal = row.principal; }
         });
         return { payment: monthlyPayment(principal, params.rate, termMonths), months: rows.length, payoffDate: rows.length ? rows[rows.length - 1].date : params.startDate, scheduledDate: isoDate(addMonths(start, termMonths)), totalInterest: cumulativeInterest, rows: rows, yearly: yearly };
       }
@@ -421,6 +421,20 @@
         labels.push.apply(labels, names);
         return values;
       }
+      function markerPosition(rows, targetIso) {
+        if (!rows || !rows.length || !targetIso) return null;
+        if (targetIso <= rows[0].date) return 0;
+        for (var index = 1; index < rows.length; index++) {
+          if (targetIso <= rows[index].date) {
+            var previous = utcDate(rows[index - 1].date).getTime();
+            var next = utcDate(rows[index].date).getTime();
+            var target = utcDate(targetIso).getTime();
+            var ratio = next > previous ? (target - previous) / (next - previous) : 0;
+            return (index - 1) + Math.max(0, Math.min(1, ratio));
+          }
+        }
+        return rows.length - 1;
+      }
       function render(state) {
         var loan = Math.max(0, state.propertyValue - state.deposit);
         var termMonths = Math.max(1, Math.round(state.termYears * 12));
@@ -430,7 +444,7 @@
         var over = state.overpayment > 0 ? simulate(params, { amount: state.overpayment, startDate: state.overpaymentStart, endDate: endDate }) : null;
         var fixedBaseline = endDate ? baseline.rows.filter(function (row) { return row.date <= endDate; }).slice(-1)[0] : null;
         var fixedOver = endDate && over ? over.rows.filter(function (row) { return row.date <= endDate; }).slice(-1)[0] : null;
-        var fixedMarkerIndex = endDate && baseline.yearly.length ? Math.min(Math.max(0, Math.round(state.fixedYears)), baseline.yearly.length - 1) : null;
+        var fixedMarkerIndex = markerPosition(baseline.yearly, endDate);
         var currency = "£";
         $("loanValue").textContent = money(loan, currency);
         $("monthlyPayment").textContent = money(baseline.payment, currency);
