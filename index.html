@@ -40,8 +40,8 @@
     .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 26px 0 64px; }
     .topbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 54px; }
     .brand { display: flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; }
-    .brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 13px; color: #fffdf9; background: var(--primary); box-shadow: 0 8px 18px rgba(63, 113, 100, .2); }
-    .brand-mark svg { width: 19px; height: 19px; }
+    .brand-mark { width: 38px; height: 38px; display: block; overflow: hidden; border-radius: 13px; background: transparent; }
+    .brand-mark img { display: block; width: 100%; height: 100%; object-fit: cover; }
     .brand-name { font-weight: 760; letter-spacing: -.03em; }
     .brand-note { color: var(--muted); font-size: 12px; margin-left: 4px; }
     .top-actions { display: flex; align-items: center; gap: 9px; }
