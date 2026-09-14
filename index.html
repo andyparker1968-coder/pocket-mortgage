@@ -61,6 +61,12 @@
     .layout { display: grid; grid-template-columns: 325px minmax(0, 1fr); align-items: start; gap: 22px; }
     .panel, .card { border: 1px solid var(--line); background: rgba(255,253,249,.86); border-radius: var(--radius); box-shadow: var(--shadow); }
     .panel { position: sticky; top: 18px; padding: 22px; }
+    .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .panel-heading h2 { margin-bottom: 5px; }
+    .panel-toggle { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--primary); padding: 7px 11px; font-size: 11px; font-weight: 750; }
+    .panel-body[hidden] { display: none; }
+    .panel.collapsed { position: static; }
+    .panel.collapsed .panel-intro { margin-bottom: 0; }
     .panel h2 { margin-bottom: 5px; font-family: Georgia, serif; font-size: 27px; letter-spacing: -.04em; font-weight: 600; }
     .panel-intro { color: var(--muted); font-size: 12px; margin-bottom: 20px; }
     .field { margin-bottom: 14px; }
@@ -141,6 +147,24 @@
     .footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 35px; padding-top: 17px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
     .footer strong { color: var(--ink); }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .appearance-tools { margin-top: 26px; text-align: center; }
+    .appearance-link { border: 0; background: none; padding: 8px; color: var(--primary); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+    .appearance-panel { width: min(720px, 100%); margin: 10px auto 0; padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: var(--shadow); text-align: left; }
+    .appearance-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .appearance-grid label { margin: 0; }
+    .appearance-grid input[type="color"], .appearance-grid select { width: 100%; min-height: 42px; }
+    .appearance-grid input[type="color"] { padding: 4px; }
+    .check-field { display: flex; flex-direction: column; }
+    .check-line { display: flex; align-items: center; gap: 8px; min-height: 42px; border: 1px solid var(--line); border-radius: 12px; background: #fffefa; padding: 10px 11px; color: var(--ink); font-size: 12px; text-transform: none; letter-spacing: 0; }
+    .check-line input { width: 17px; min-height: 0; height: 17px; margin: 0; padding: 0; accent-color: var(--primary); }
+    .appearance-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+    .appearance-panel[hidden] { display: none; }
+    html, body { min-height: 100%; background-color: var(--bg) !important; }
+    body, .shell, .main { background-color: var(--bg); }
+    .panel, .card, .metric, .impact-item, .detail, .appearance-panel { background-color: var(--card); }
+    .metric.accent { background: var(--primary); }
+    body, button, input, select, svg text { font-family: var(--app-font, Inter, ui-sans-serif, system-ui, sans-serif) !important; }
+    .heading-bold :is(h1, h2, h3, label, .section-label span:first-child, .metric-label, .metric-value, .impact-label, .impact-value, .detail strong, .derived strong) { font-weight: 800 !important; }
     @media (max-width: 920px) {
       .layout { grid-template-columns: 1fr; }
       .panel { position: static; }
@@ -168,7 +192,9 @@
       .details .detail:last-child { grid-column: span 2; }
       .footer { display: block; }
       .footer span { display: block; margin-top: 5px; }
+      .appearance-grid { grid-template-columns: 1fr 1fr; }
     }
+    @media (max-width: 430px) { .appearance-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -200,9 +226,13 @@
     </section>
 
     <div class="layout">
-      <aside class="panel">
-        <h2>Mortgage details</h2>
+      <aside class="panel" id="mortgagePanel">
+        <div class="panel-heading">
+          <h2>Mortgage details</h2>
+          <button class="panel-toggle" type="button" id="mortgageToggle" aria-expanded="true" aria-controls="mortgagePanelBody">Roll up</button>
+        </div>
         <p class="panel-intro">Change any number to model a different plan.</p>
+        <div class="panel-body" id="mortgagePanelBody">
         <div class="field">
           <label for="propertyValue">Property value</label>
           <div class="input-wrap"><span class="input-prefix currency-prefix">£</span><input id="propertyValue" type="number" min="0" step="1000" value="300000"></div>
@@ -246,6 +276,7 @@
           <strong id="loanValue">£240,000</strong>
         </div>
         <p class="save-note">Saved automatically on this device. No account or internet connection is required.</p>
+        </div>
       </aside>
 
       <main class="main">
@@ -319,6 +350,20 @@
         </section>
       </main>
     </div>
+    <div class="appearance-tools">
+      <button class="appearance-link" type="button" id="appearanceToggle" aria-expanded="false" aria-controls="appearancePanel">Customise appearance</button>
+      <section class="appearance-panel" id="appearancePanel" hidden>
+        <div class="appearance-grid">
+          <label>Background<input id="themeBackground" type="color" value="#f4f1ea"></label>
+          <label>Panels<input id="themePanel" type="color" value="#fffdf9"></label>
+          <label>Text<input id="themeText" type="color" value="#18221f"></label>
+          <label>Accent<input id="themeAccent" type="color" value="#3f7164"></label>
+          <label>Font<select id="themeFont"><option value="system">System</option><option value="serif">Serif</option><option value="rounded">Rounded</option><option value="mono">Monospace</option></select></label>
+          <label class="check-field">Headings<span class="check-line"><input id="themeBold" type="checkbox"> Bold labels and totals</span></label>
+        </div>
+        <div class="appearance-actions"><button class="pill" type="button" id="appearanceReset">Reset appearance</button></div>
+      </section>
+    </div>
     <footer class="footer"><strong>Pocket Mortgage</strong><span>Standalone version · Figures are estimates, not financial advice.</span></footer>
   </div>
 
@@ -330,7 +375,7 @@
       var ids = Object.keys(defaults);
       var $ = function (id) { return document.getElementById(id); };
       var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      var colors = { grey: "#9aa6a1", green: "#3f7164", amber: "#c58a27", grid: "#e4e9e3", text: "#68726d" };
+      var colors = { grey: "#9aa6a1", green: "var(--primary)", amber: "#c58a27", grid: "var(--line)", text: "var(--muted)" };
 
       function readState() {
         try { var stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); return Object.assign({}, defaults, stored || {}); }
@@ -549,6 +594,85 @@
         setTimeout(function () { URL.revokeObjectURL(link.href); }, 500);
       });
       update();
+    }());
+  </script>
+  <script>
+    (function () {
+      "use strict";
+      var APPEARANCE_KEY = "pocket-mortgage-standalone-v1-appearance";
+      var PANEL_KEY = "pocket-mortgage-standalone-v1-details-collapsed";
+      var defaults = { background: "#f4f1ea", panel: "#fffdf9", text: "#18221f", accent: "#3f7164", font: "system", bold: false };
+      var fonts = {
+        system: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        serif: 'Georgia, "Times New Roman", serif',
+        rounded: '"Trebuchet MS", "Arial Rounded MT Bold", ui-sans-serif, sans-serif',
+        mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace'
+      };
+      function get(id) { return document.getElementById(id); }
+      function readAppearance() {
+        try { return Object.assign({}, defaults, JSON.parse(localStorage.getItem(APPEARANCE_KEY) || "null") || {}); }
+        catch (_) { return Object.assign({}, defaults); }
+      }
+      function saveAppearance(value) {
+        try { localStorage.setItem(APPEARANCE_KEY, JSON.stringify(value)); } catch (_) {}
+      }
+      function valuesFromControls() {
+        return { background: get("themeBackground").value, panel: get("themePanel").value, text: get("themeText").value, accent: get("themeAccent").value, font: get("themeFont").value, bold: get("themeBold").checked };
+      }
+      function applyAppearance(value) {
+        var root = document.documentElement;
+        root.style.setProperty("--bg", value.background);
+        root.style.setProperty("--card", value.panel);
+        root.style.setProperty("--ink", value.text);
+        root.style.setProperty("--primary", value.accent);
+        root.style.setProperty("--app-font", fonts[value.font] || fonts.system);
+        document.body.classList.toggle("heading-bold", !!value.bold);
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", value.background);
+      }
+      function setControls(value) {
+        get("themeBackground").value = value.background;
+        get("themePanel").value = value.panel;
+        get("themeText").value = value.text;
+        get("themeAccent").value = value.accent;
+        get("themeFont").value = value.font;
+        get("themeBold").checked = !!value.bold;
+      }
+      var appearance = readAppearance();
+      setControls(appearance);
+      applyAppearance(appearance);
+      ["themeBackground", "themePanel", "themeText", "themeAccent", "themeFont", "themeBold"].forEach(function (id) {
+        get(id).addEventListener("input", function () {
+          var value = valuesFromControls();
+          applyAppearance(value);
+          saveAppearance(value);
+        });
+      });
+      get("appearanceToggle").addEventListener("click", function () {
+        var panel = get("appearancePanel");
+        var open = panel.hasAttribute("hidden");
+        panel.toggleAttribute("hidden", !open);
+        this.setAttribute("aria-expanded", String(open));
+        this.textContent = open ? "Hide appearance options" : "Customise appearance";
+      });
+      get("appearanceReset").addEventListener("click", function () {
+        setControls(defaults);
+        applyAppearance(defaults);
+        saveAppearance(defaults);
+      });
+
+      function setMortgageCollapsed(collapsed) {
+        get("mortgagePanelBody").toggleAttribute("hidden", collapsed);
+        get("mortgagePanel").classList.toggle("collapsed", collapsed);
+        get("mortgageToggle").setAttribute("aria-expanded", String(!collapsed));
+        get("mortgageToggle").textContent = collapsed ? "Open details" : "Roll up";
+        try { localStorage.setItem(PANEL_KEY, collapsed ? "1" : "0"); } catch (_) {}
+      }
+      var collapsed = false;
+      try { collapsed = localStorage.getItem(PANEL_KEY) === "1"; } catch (_) {}
+      setMortgageCollapsed(collapsed);
+      get("mortgageToggle").addEventListener("click", function () {
+        setMortgageCollapsed(this.getAttribute("aria-expanded") === "true");
+      });
     }());
   </script>
   <script>
