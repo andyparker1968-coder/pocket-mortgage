@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#f4f1ea">
+  <meta name="theme-color" content="#ffffff">
   <meta name="description" content="A private, offline mortgage repayment and overpayment planner from Pocket Mortgage.">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon.png?v=chart-icon-20260922">
   <link rel="shortcut icon" href="./icons/favicon.ico?v=chart-icon-20260922">
@@ -13,13 +13,13 @@
   <title>Pocket Mortgage — standalone planner</title>
   <style>
     :root {
-      --bg: #f4f1ea;
-      --card: #fffdf9;
-      --ink: #18221f;
+      --bg: #ffffff;
+      --card: #c2c2c2;
+      --ink: #000000;
       --muted: #68726d;
       --line: #dce1db;
       --soft: #e9eee8;
-      --primary: #3f7164;
+      --primary: #489fd4;
       --primary-dark: #2e574e;
       --primary-soft: #dceae2;
       --amber: #c58a27;
@@ -410,10 +410,10 @@
       <button class="appearance-link" type="button" id="appearanceToggle" aria-expanded="false" aria-controls="appearancePanel">Customise appearance</button>
       <section class="appearance-panel" id="appearancePanel" hidden>
         <div class="appearance-grid">
-          <label>Background<input id="themeBackground" type="color" value="#f4f1ea"></label>
-          <label>Panels<input id="themePanel" type="color" value="#fffdf9"></label>
-          <label>Text<input id="themeText" type="color" value="#18221f"></label>
-          <label>Accent<input id="themeAccent" type="color" value="#3f7164"></label>
+          <label>Background<input id="themeBackground" type="color" value="#ffffff"></label>
+          <label>Panels<input id="themePanel" type="color" value="#c2c2c2"></label>
+          <label>Text<input id="themeText" type="color" value="#000000"></label>
+          <label>Accent<input id="themeAccent" type="color" value="#489fd4"></label>
           <label>Font<select id="themeFont"><option value="system">System</option><option value="serif">Serif</option><option value="rounded">Rounded</option><option value="mono">Monospace</option></select></label>
           <label class="check-field">Headings<span class="check-line"><input id="themeBold" type="checkbox"> Bold labels and totals</span></label>
         </div>
@@ -657,7 +657,7 @@
       "use strict";
       var APPEARANCE_KEY = "pocket-mortgage-standalone-v1-appearance";
       var PANEL_KEY = "pocket-mortgage-standalone-v1-details-collapsed";
-      var defaults = { background: "#f4f1ea", panel: "#fffdf9", text: "#18221f", accent: "#3f7164", font: "system", bold: false };
+      var defaults = { background: "#ffffff", panel: "#c2c2c2", text: "#000000", accent: "#489fd4", font: "system", bold: false };
       var fonts = {
         system: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         serif: 'Georgia, "Times New Roman", serif',
